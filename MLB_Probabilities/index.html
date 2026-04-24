@@ -313,6 +313,10 @@
   }
   .grid.confirmed-only .card:has(.pill[data-lineup-cert]:not([data-lineup-cert="1"]):not([data-lineup-cert="1.0"])) { display: none; }
   .grid.confirmed-only .prop-card[data-lineup-cert]:not([data-lineup-cert="1"]):not([data-lineup-cert="1.0"]) { display: none; }
+
+  /* Scratched picks (lineup_cert < 0.4) */
+  .pill.scratched, .prop-card.scratched, .prop.scratched,
+  [data-scratched="true"] { display: none !important; }
 </style>
 </head>
 <body>
@@ -499,9 +503,9 @@
   <details class="props">
     <summary>Top 2 prop edges <span></span></summary>
     <div class="prop-list">
-      <div class="prop" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr"
+      <div class="prop scratched" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr" data-scratched="true"
          data-conf-score="58" data-edge-pct="0.04"
-         data-weather-cert="1.0" data-lineup-cert="1.0"
+         data-weather-cert="1.0" data-lineup-cert="0.0"
          data-factors='{"mikolas_hr_9":1.9,"robert_iso_rhp":0.235}'
          data-reason="Robert&#x27;s power into Mikolas&#x27; flat 2-seam. De-vig 23.8%, model 28%."><span class="ptype hr">HR</span><div><span class="pname">Luis Robert Jr.</span><span class="pline">To Hit a HR</span></div><span class="podds">+320</span><span class="stake-pill">0.50u</span><button class="btn-track" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:CWS-WSH:luis-robert-jr:hr&quot;, &quot;type&quot;: &quot;prop_hr&quot;, &quot;team&quot;: null, &quot;player&quot;: &quot;Luis Robert Jr.&quot;, &quot;odds&quot;: &quot;+320&quot;, &quot;units&quot;: 0.5, &quot;description&quot;: &quot;Luis Robert Jr. — To Hit a HR&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div>
       <div class="prop" data-pick-id="2026-04-24:prop:CWS-WSH:james-wood:over-1-5-h"
@@ -584,7 +588,7 @@
   <div class="pick-row">
     <div class="pill med" data-pick-id="2026-04-24:ml:CLE-TOR:CLE"
          data-conf-score="56" data-edge-pct="0.04"
-         data-weather-cert="1.0" data-lineup-cert="0.9"
+         data-weather-cert="1.0" data-lineup-cert="1.0"
          data-factors='{"williams_era":2.12,"scherzer_era":7.16,"devig":0.473}'
          data-reason="Williams 2.12 ERA w/ 28% K. Scherzer 7.16 / velocity down. De-vig 47.3%, model 52%.">
       <div class="label">Winner</div>
@@ -592,7 +596,7 @@
     <div class="pick-actions"><button class="btn-track" data-pick-id="2026-04-24:ml:CLE-TOR:CLE" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:ml:CLE-TOR:CLE&quot;, &quot;type&quot;: &quot;ml&quot;, &quot;team&quot;: &quot;CLE&quot;, &quot;odds&quot;: &quot;+114&quot;, &quot;units&quot;: 0.75, &quot;description&quot;: &quot;CLE ML&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div></div>
     <div class="pill over" data-pick-id="2026-04-24:f5:CLE-TOR:f5-o-4.5"
          data-conf-score="60" data-edge-pct="0.05"
-         data-weather-cert="1.0" data-lineup-cert="0.9"
+         data-weather-cert="1.0" data-lineup-cert="1.0"
          data-factors='{"scherzer_hr_9":2.1,"cle_l15_runs_f5":2.8}'
          data-reason="Scherzer HR-prone (2.1/9). CLE&#x27;s right-side (Ramirez/Kwan/Naylor) squares him up. F5 over +5pp.">
       <div class="label">F5 Total</div>
@@ -611,9 +615,9 @@
          data-weather-cert="1.0" data-lineup-cert="1.0"
          data-factors='{"williams_k_pct":0.28,"tor_k_pct_l15":0.23}'
          data-reason="Williams 28% K, Jays whiff 23% L15. Model 6.7 K projection."><span class="ptype ks">K</span><div><span class="pname">Gavin Williams</span><span class="pline">Over 5.5 K</span></div><span class="podds">+105</span><span class="stake-pill">1.00u</span><button class="btn-track" data-pick-id="2026-04-24:prop:CLE-TOR:gavin-williams:over-5-5-k" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:CLE-TOR:gavin-williams:over-5-5-k&quot;, &quot;type&quot;: &quot;prop_ks&quot;, &quot;team&quot;: null, &quot;player&quot;: &quot;Gavin Williams&quot;, &quot;odds&quot;: &quot;+105&quot;, &quot;units&quot;: 1.0, &quot;description&quot;: &quot;Gavin Williams — Over 5.5 K&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div>
-      <div class="prop" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h"
+      <div class="prop scratched" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h" data-scratched="true"
          data-conf-score="62" data-edge-pct="0.04"
-         data-weather-cert="1.0" data-lineup-cert="1.0"
+         data-weather-cert="1.0" data-lineup-cert="0.0"
          data-factors='{"kwan_babip_l15":0.34,"scherzer_velo_down":true}'
          data-reason="Kwan .340 BABIP L15. Scherzer velocity down = softer contact allowed. +220 value."><span class="ptype hits">Hits</span><div><span class="pname">Steven Kwan</span><span class="pline">Over 1.5 H</span></div><span class="podds">+220</span><span class="stake-pill">1.00u</span><button class="btn-track" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h&quot;, &quot;type&quot;: &quot;prop_hits&quot;, &quot;team&quot;: null, &quot;player&quot;: &quot;Steven Kwan&quot;, &quot;odds&quot;: &quot;+220&quot;, &quot;units&quot;: 1.0, &quot;description&quot;: &quot;Steven Kwan — Over 1.5 H&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div>
     </div>
@@ -938,10 +942,11 @@
     <span class="swatch" style="margin-left:10px;"><span style="background:#4ade80"></span> ◆ Stake size · straights = 1.00u · parlays scale by odds</span>
   </div>
   <div style="margin-top:10px; color:#8294b0;">Not betting advice. Verify lineups at first pitch — weather, scratches, and bullpen usage update constantly.</div>
-  <div class="last-updated-badge" data-ts="2026-04-24T10:00:00-04:00" title="Last automated refresh">
+  <div class="last-updated-badge" data-ts="2026-04-24T16:00:00-04:00" title="Last automated refresh">
     <span class="lu-dot" aria-hidden="true"></span>
     <span class="lu-label">Updated</span>
-    <span class="lu-value">Fri, Apr 24, 2026 · 10:00 AM ET</span>
+    <span class="lu-value">Fri, Apr 24, 2026 · 4:00 PM ET</span>
+    <div class="lu-refresh-note" style="margin-top:4px; font-size:10px; color:var(--muted);">Lineup lock verified at 4:00 PM ET</div>
   </div>
 </footer>
 

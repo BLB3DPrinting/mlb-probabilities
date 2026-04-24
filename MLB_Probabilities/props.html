@@ -241,6 +241,10 @@
   }
   .grid.confirmed-only .card:has(.pill[data-lineup-cert]:not([data-lineup-cert="1"]):not([data-lineup-cert="1.0"])) { display: none; }
   .grid.confirmed-only .prop-card[data-lineup-cert]:not([data-lineup-cert="1"]):not([data-lineup-cert="1.0"]) { display: none; }
+
+  /* Scratched picks (lineup_cert < 0.4) */
+  .pill.scratched, .prop-card.scratched, .prop.scratched,
+  [data-scratched="true"] { display: none !important; }
 </style>
 </head>
 <body>
@@ -305,9 +309,9 @@
     data-conf-score="60" data-edge-pct="0.044"
     data-weather-cert="0.8" data-lineup-cert="1.0"
     data-factors='{"park_hr_factor":1.28,"muncy_iso":0.27,"devig":0.256}'><div class="prop-head"><div><div class="player"><img class="team-logo" src="https://www.mlbstatic.com/team-logos/119.svg" alt="LAD" loading="lazy" />Max Muncy</div><div class="team-line">LAD · vs RHP Jameson Taillon (CHC)</div></div><div class="odds-badge">+290</div></div><div class="prop-line"><span class="ptype hr">HR</span>To Hit a HR</div><div class="meta"><span>Wrigley Field · 2:20 PM ET</span><span class="conf med">MED</span></div><div class="reason">8 HR in 24 games. Wind-out Wrigley + Taillon FB tilt bumps HR rate 17% → 21%. De-vig 25.6%, model 30%.</div><div class="actions"><span class="stake-pill">0.75u</span><button class="btn copy" data-copy="Max Muncy - To Hit a HR +290">Copy</button><button class="btn-track" data-pick-id="2026-04-24:prop:LAD-CHC:max-muncy:hr" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:LAD-CHC:max-muncy:hr&quot;, &quot;type&quot;: &quot;prop_hr&quot;, &quot;team&quot;: &quot;LAD&quot;, &quot;player&quot;: &quot;Max Muncy&quot;, &quot;odds&quot;: &quot;+290&quot;, &quot;units&quot;: 0.75, &quot;description&quot;: &quot;Max Muncy — To Hit a HR&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div></article>
-<article class="prop-card hr" data-type="hr" data-conf="med" data-team="CWS" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr"
+<article class="prop-card hr scratched" data-type="hr" data-conf="med" data-team="CWS" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr" data-scratched="true"
     data-conf-score="58" data-edge-pct="0.04"
-    data-weather-cert="1.0" data-lineup-cert="1.0"
+    data-weather-cert="1.0" data-lineup-cert="0.0"
     data-factors='{"mikolas_hr_9":1.9,"robert_iso_rhp":0.235}'><div class="prop-head"><div><div class="player"><img class="team-logo" src="https://www.mlbstatic.com/team-logos/145.svg" alt="CWS" loading="lazy" />Luis Robert Jr.</div><div class="team-line">CWS · vs RHP Miles Mikolas (WSH)</div></div><div class="odds-badge">+320</div></div><div class="prop-line"><span class="ptype hr">HR</span>To Hit a HR</div><div class="meta"><span>Nationals Park · 6:45 PM ET</span><span class="conf med">MED</span></div><div class="reason">Robert&#x27;s power into Mikolas&#x27; flat 2-seam. De-vig 23.8%, model 28%.</div><div class="actions"><span class="stake-pill">0.50u</span><button class="btn copy" data-copy="Luis Robert Jr. - To Hit a HR +320">Copy</button><button class="btn-track" data-pick-id="2026-04-24:prop:CWS-WSH:luis-robert-jr:hr" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:CWS-WSH:luis-robert-jr:hr&quot;, &quot;type&quot;: &quot;prop_hr&quot;, &quot;team&quot;: &quot;CWS&quot;, &quot;player&quot;: &quot;Luis Robert Jr.&quot;, &quot;odds&quot;: &quot;+320&quot;, &quot;units&quot;: 0.5, &quot;description&quot;: &quot;Luis Robert Jr. — To Hit a HR&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div></article>
 <article class="prop-card hr" data-type="hr" data-conf="med" data-team="BAL" data-pick-id="2026-04-24:prop:BOS-BAL:gunnar-henderson:hr"
     data-conf-score="62" data-edge-pct="0.043"
@@ -346,9 +350,9 @@
     data-conf-score="65" data-edge-pct="0.05"
     data-weather-cert="1.0" data-lineup-cert="1.0"
     data-factors='{"rutschman_l15":0.34,"bello_rhh_ba":0.285}'><div class="prop-head"><div><div class="player"><img class="team-logo" src="https://www.mlbstatic.com/team-logos/110.svg" alt="BAL" loading="lazy" />Adley Rutschman</div><div class="team-line">BAL · vs RHP Brayan Bello (BOS)</div></div><div class="odds-badge">+110</div></div><div class="prop-line"><span class="ptype hits">Hits</span>Over 1.5 H</div><div class="meta"><span>Oriole Park · 7:05 PM ET</span><span class="conf med">MED</span></div><div class="reason">Rutschman .340 L15, Bello allows .285 BA to RHH. De-vig 47.6%, model 53%.</div><div class="actions"><span class="stake-pill">1.00u</span><button class="btn copy" data-copy="Adley Rutschman - Over 1.5 H +110">Copy</button><button class="btn-track" data-pick-id="2026-04-24:prop:BOS-BAL:adley-rutschman:over-1-5-h" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:BOS-BAL:adley-rutschman:over-1-5-h&quot;, &quot;type&quot;: &quot;prop_hits&quot;, &quot;team&quot;: &quot;BAL&quot;, &quot;player&quot;: &quot;Adley Rutschman&quot;, &quot;odds&quot;: &quot;+110&quot;, &quot;units&quot;: 1.0, &quot;description&quot;: &quot;Adley Rutschman — Over 1.5 H&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div></article>
-<article class="prop-card hits" data-type="hits" data-conf="med" data-team="CLE" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h"
+<article class="prop-card hits scratched" data-type="hits" data-conf="med" data-team="CLE" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h" data-scratched="true"
     data-conf-score="62" data-edge-pct="0.04"
-    data-weather-cert="1.0" data-lineup-cert="1.0"
+    data-weather-cert="1.0" data-lineup-cert="0.0"
     data-factors='{"kwan_babip_l15":0.34,"scherzer_velo_down":true}'><div class="prop-head"><div><div class="player"><img class="team-logo" src="https://www.mlbstatic.com/team-logos/114.svg" alt="CLE" loading="lazy" />Steven Kwan</div><div class="team-line">CLE · vs RHP Max Scherzer (TOR)</div></div><div class="odds-badge">+220</div></div><div class="prop-line"><span class="ptype hits">Hits</span>Over 1.5 H</div><div class="meta"><span>Rogers Centre (dome) · 7:07 PM ET</span><span class="conf med">MED</span></div><div class="reason">Kwan .340 BABIP L15. Scherzer velocity down = softer contact allowed. +220 value.</div><div class="actions"><span class="stake-pill">1.00u</span><button class="btn copy" data-copy="Steven Kwan - Over 1.5 H +220">Copy</button><button class="btn-track" data-pick-id="2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h" data-pick-meta="{&quot;pick_id&quot;: &quot;2026-04-24:prop:CLE-TOR:steven-kwan:over-1-5-h&quot;, &quot;type&quot;: &quot;prop_hits&quot;, &quot;team&quot;: &quot;CLE&quot;, &quot;player&quot;: &quot;Steven Kwan&quot;, &quot;odds&quot;: &quot;+220&quot;, &quot;units&quot;: 1.0, &quot;description&quot;: &quot;Steven Kwan — Over 1.5 H&quot;, &quot;date&quot;: &quot;2026-04-24&quot;}" title="Sign in to track picks">Track</button></div></article>
 <article class="prop-card hits" data-type="hits" data-conf="med" data-team="NYM" data-pick-id="2026-04-24:prop:COL-NYM:juan-soto:over-1-5-h"
     data-conf-score="60" data-edge-pct="0.04"
@@ -412,10 +416,11 @@
 <footer>
   <div><b>Method:</b> Prop edges synthesize season metrics, last-15-game form, handedness splits, lineup spot, and the same park/weather data model from the games page. Parlays shown are suggested combinations — combined odds are approximate and do not include sportsbook juice variance.</div>
   <div style="margin-top:8px;">Not betting advice. Verify lineups at first pitch.</div>
-  <div class="last-updated-badge" data-ts="2026-04-24T10:00:00-04:00" title="Last automated refresh">
+  <div class="last-updated-badge" data-ts="2026-04-24T16:00:00-04:00" title="Last automated refresh">
     <span class="lu-dot" aria-hidden="true"></span>
     <span class="lu-label">Updated</span>
-    <span class="lu-value">Mon, Apr 20, 2026 · 11:01 AM ET</span>
+    <span class="lu-value">Fri, Apr 24, 2026 · 4:00 PM ET</span>
+    <div class="lu-refresh-note" style="margin-top:4px; font-size:10px; color:var(--muted);">Lineup lock verified at 4:00 PM ET</div>
   </div>
 </footer>
 
