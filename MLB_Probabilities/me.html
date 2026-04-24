@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Tracked Picks — MLB Probabilities</title>
+<style>
+  :root {
+    --bg: #0b1220; --panel: #111a2e; --panel-2: #0e1627; --border: #1f2b45;
+    --text: #e6ecf5; --muted: #9fb0c9; --accent: #4cc9f0;
+    --good: #4ade80; --bad: #f87171; --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  a { color: var(--accent); }
+  header { padding: 28px 32px 16px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #0f1a33, var(--bg)); }
+  header .row { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size: 26px; letter-spacing: .3px; }
+  header .sub { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .nav { display:flex; gap:8px; }
+  .nav a { text-decoration:none; color: var(--text); background:#172038; border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:13px; }
+  .nav a:hover { background:#1e2a4c; }
+  .nav a.active { background: var(--accent); color:#02131c; border-color: var(--accent); font-weight:600; }
+
+  .wrap { padding: 24px 32px 60px; max-width: 1100px; margin: 0 auto; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); padding: 16px 18px; border-radius: 12px; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat .v { font-size: 26px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.bad { color: var(--bad); }
+
+  .section-title { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 12px; }
+
+  table.history { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table.history th, table.history td { text-align: left; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  table.history th { background: var(--panel-2); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; font-weight: 600; }
+  table.history tr:last-child td { border-bottom: none; }
+  table.history .date { color: var(--muted); font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11px; }
+  table.history .odds { font-family: "SF Mono", Menlo, Consolas, monospace; color: var(--accent); }
+  table.history .outcome { font-weight: 700; text-align: center; }
+  table.history .outcome.W { color: var(--good); }
+  table.history .outcome.L { color: var(--bad); }
+  table.history .outcome.P { color: var(--warn); }
+  table.history .outcome.V { color: var(--muted); }
+  table.history .outcome.pending { color: var(--muted); font-weight: 500; }
+  table.history .units { text-align: right; font-family: "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  table.history .units.good { color: var(--good); }
+  table.history .units.bad { color: var(--bad); }
+
+  .empty { background: var(--panel); border: 1px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; color: var(--muted); }
+  .empty a { text-decoration: underline; }
+
+  .gate { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 40px; text-align: center; margin-top: 40px; }
+  .gate h2 { margin: 0 0 12px; }
+  .gate p { color: var(--muted); max-width: 500px; margin: 8px auto; line-height: 1.5; }
+
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 16px; }
+    header { padding: 16px; }
+    table.history { font-size: 12px; }
+    table.history th, table.history td { padding: 8px 6px; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div>
+      <h1>My Tracked Picks</h1>
+      <div class="sub" id="user-sub">Sign in to view your ROI dashboard</div>
+    </div>
+    <div class="nav">
+      <a href="/">Games</a>
+      <a href="/props">Player Props</a>
+      <a href="/leaderboard">Leaderboard</a>
+      <a href="/me" class="active">Me</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="signed-out" class="gate" style="display:none;">
+    <h2>Not signed in</h2>
+    <p>This page requires you to sign in via Cloudflare Access. Once an admin adds your email to the allowlist, visit <a href="/">the home page</a> and you'll get a Google sign-in prompt automatically.</p>
+  </div>
+
+  <div id="signed-in" style="display:none;">
+    <div class="summary" id="summary"></div>
+    <div class="section-title">Pick History (most recent first)</div>
+    <div id="history-wrap"></div>
+  </div>
+
+  <div id="loading" style="color: var(--muted); padding: 40px; text-align: center;">Loading…</div>
+</main>
+
+<script>
+(async () => {
+  const $ = q => document.querySelector(q);
+  const loading = $('#loading');
+
+  function statCard(k, v, cls='') {
+    return `<div class="stat"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`;
+  }
+
+  function fmtUnits(n) {
+    if (n == null) return '0.00u';
+    const s = n >= 0 ? '+' : '';
+    return s + Number(n).toFixed(2) + 'u';
+  }
+
+  function fmtPct(n) {
+    if (!isFinite(n)) return '—';
+    const s = n >= 0 ? '+' : '';
+    return s + Number(n).toFixed(1) + '%';
+  }
+
+  function outcomeBadge(s, units_delta) {
+    if (!s) return '<span class="outcome pending">pending</span>';
+    return `<span class="outcome ${s}">${s}</span>`;
+  }
+
+  function rowHtml(h) {
+    const date = h.pick_date || new Date(h.tracked_at * 1000).toISOString().slice(0,10);
+    const udelta = h.units_delta;
+    const ucls = udelta == null ? '' : (udelta > 0 ? 'good' : (udelta < 0 ? 'bad' : ''));
+    return `
+      <tr>
+        <td class="date hide-sm">${date}</td>
+        <td>${(h.description || h.player || h.pick_id).replace(/</g,'&lt;')}</td>
+        <td class="mono hide-sm">${h.type || ''}</td>
+        <td class="odds">${h.odds}</td>
+        <td class="units">${Number(h.units || 0).toFixed(2)}u</td>
+        <td class="outcome">${outcomeBadge(h.outcome, udelta)}</td>
+        <td class="units ${ucls}">${udelta == null ? '' : fmtUnits(udelta)}</td>
+      </tr>`;
+  }
+
+  try {
+    const who = await fetch('/api/whoami').then(r => r.json()).catch(() => ({}));
+    if (!who.email) {
+      loading.style.display = 'none';
+      $('#signed-out').style.display = 'block';
+      return;
+    }
+    $('#user-sub').textContent = `Signed in as ${who.email}`;
+
+    const data = await fetch('/api/me/stats').then(r => r.json());
+    const s = data.summary || {};
+    const roi = s.units_risked > 0 ? (s.units_delta / s.units_risked) * 100 : 0;
+    const settled = (s.wins || 0) + (s.losses || 0);
+    const winPct = settled > 0 ? (s.wins / settled) * 100 : 0;
+    const uDelta = Number(s.units_delta || 0);
+
+    $('#summary').innerHTML = [
+      statCard('Tracked', s.total || 0),
+      statCard('Settled', settled),
+      statCard('Record', `${s.wins||0}-${s.losses||0}-${s.pushes||0}`),
+      statCard('Win %', settled > 0 ? winPct.toFixed(1) + '%' : '—'),
+      statCard('Units', fmtUnits(uDelta), uDelta > 0 ? 'good' : (uDelta < 0 ? 'bad' : '')),
+      statCard('ROI', settled > 0 ? fmtPct(roi) : '—', roi > 0 ? 'good' : (roi < 0 ? 'bad' : '')),
+    ].join('');
+
+    const history = data.history || [];
+    if (history.length === 0) {
+      $('#history-wrap').innerHTML = '<div class="empty">No tracked picks yet. Tap <strong>Track</strong> on any pick on the <a href="/">home</a> or <a href="/props">props</a> pages to start logging.</div>';
+    } else {
+      $('#history-wrap').innerHTML = `
+        <table class="history">
+          <thead><tr>
+            <th class="hide-sm">Date</th><th>Pick</th><th class="hide-sm">Type</th><th>Odds</th><th class="units">Stake</th><th>Outcome</th><th class="units">P/L</th>
+          </tr></thead>
+          <tbody>${history.map(rowHtml).join('')}</tbody>
+        </table>
+      `;
+    }
+
+    loading.style.display = 'none';
+    $('#signed-in').style.display = 'block';
+  } catch (e) {
+    loading.textContent = 'Error loading data: ' + e.message;
+  }
+})();
+</script>
+
+</body>
+</html>

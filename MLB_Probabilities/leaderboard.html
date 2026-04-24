@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leaderboard — MLB Probabilities</title>
+<style>
+  :root {
+    --bg: #0b1220; --panel: #111a2e; --panel-2: #0e1627; --border: #1f2b45;
+    --text: #e6ecf5; --muted: #9fb0c9; --accent: #4cc9f0;
+    --good: #4ade80; --bad: #f87171; --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  header { padding: 28px 32px 16px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #0f1a33, var(--bg)); }
+  header .row { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size: 26px; letter-spacing: .3px; }
+  header .sub { color: var(--muted); margin-top: 6px; font-size: 14px; }
+  .nav { display:flex; gap:8px; }
+  .nav a { text-decoration:none; color: var(--text); background:#172038; border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:13px; }
+  .nav a:hover { background:#1e2a4c; }
+  .nav a.active { background: var(--accent); color:#02131c; border-color: var(--accent); font-weight:600; }
+
+  .wrap { padding: 24px 32px 60px; max-width: 900px; margin: 0 auto; }
+
+  .toolbar { display:flex; gap:8px; margin-bottom: 20px; flex-wrap:wrap; }
+  .chip { background: #172038; color: var(--text); border: 1px solid var(--border); padding: 7px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; user-select:none; }
+  .chip.active { background: var(--accent); color: #02131c; border-color: var(--accent); font-weight:600; }
+
+  .leaderboard { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .row-item { display: grid; grid-template-columns: 40px 1fr 90px 90px 110px; gap: 12px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .row-item:last-child { border-bottom: none; }
+  .row-item .rank { font-size: 18px; font-weight: 700; color: var(--muted); text-align: center; }
+  .row-item.top1 .rank { color: #fbbf24; }
+  .row-item.top2 .rank { color: #cbd5e1; }
+  .row-item.top3 .rank { color: #d97706; }
+  .row-item .handle { font-weight: 700; }
+  .row-item .record { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--muted); text-align: right; }
+  .row-item .roi { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; text-align: right; }
+  .row-item .roi.good { color: var(--good); }
+  .row-item .roi.bad { color: var(--bad); }
+  .row-item .units { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; text-align: right; }
+  .row-item .units.good { color: var(--good); }
+  .row-item .units.bad { color: var(--bad); }
+
+  .hdr { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+  .empty { background: var(--panel); border: 1px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; color: var(--muted); }
+
+  .footnote { color: var(--muted); font-size: 12px; margin-top: 16px; }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 16px; }
+    header { padding: 16px; }
+    .row-item { grid-template-columns: 30px 1fr 80px 90px; gap: 8px; padding: 10px 12px; font-size: 12px; }
+    .row-item .record { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div>
+      <h1>Leaderboard</h1>
+      <div class="sub">Top trackers by units won (minimum 3 settled picks)</div>
+    </div>
+    <div class="nav">
+      <a href="/">Games</a>
+      <a href="/props">Player Props</a>
+      <a href="/leaderboard" class="active">Leaderboard</a>
+      <a href="/me">Me</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="toolbar" id="window-toolbar">
+    <div class="chip active" data-window="7d">Last 7 days</div>
+    <div class="chip" data-window="30d">Last 30 days</div>
+    <div class="chip" data-window="all">All time</div>
+  </div>
+
+  <div id="leaderboard" class="leaderboard"></div>
+  <div class="footnote">Handles are the local part of each user's email, truncated. A minimum of 3 settled picks is required to appear.</div>
+</main>
+
+<script>
+(() => {
+  const $ = q => document.querySelector(q);
+  const els = q => [...document.querySelectorAll(q)];
+  let currentWindow = '7d';
+
+  function fmtUnits(n) {
+    const s = n >= 0 ? '+' : '';
+    return s + Number(n).toFixed(2) + 'u';
+  }
+  function fmtPct(n) {
+    const s = n >= 0 ? '+' : '';
+    return s + Number(n).toFixed(1) + '%';
+  }
+
+  function rowHtml(r, i) {
+    const rank = i + 1;
+    const topcls = rank === 1 ? 'top1' : (rank === 2 ? 'top2' : (rank === 3 ? 'top3' : ''));
+    const d = Number(r.units_delta || 0);
+    const roi = Number(r.roi || 0);
+    return `
+      <div class="row-item ${topcls}">
+        <div class="rank">${rank}</div>
+        <div class="handle">${r.handle}</div>
+        <div class="record">${r.wins||0}-${r.losses||0} <span style="color:var(--muted)">(${r.picks})</span></div>
+        <div class="roi ${roi > 0 ? 'good' : (roi < 0 ? 'bad' : '')}">${fmtPct(roi)}</div>
+        <div class="units ${d > 0 ? 'good' : (d < 0 ? 'bad' : '')}">${fmtUnits(d)}</div>
+      </div>`;
+  }
+
+  async function load(win) {
+    currentWindow = win;
+    els('.chip').forEach(c => c.classList.toggle('active', c.dataset.window === win));
+    $('#leaderboard').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Loading…</div>';
+    try {
+      const data = await fetch(`/api/leaderboard?window=${win}`).then(r => r.json());
+      const rows = data.rows || [];
+      if (rows.length === 0) {
+        $('#leaderboard').innerHTML = `<div class="empty">No ranked trackers yet. Tracked picks need to settle first (usually the morning after game day).</div>`;
+        return;
+      }
+      $('#leaderboard').innerHTML = `
+        <div class="row-item hdr">
+          <div></div><div>Handle</div><div style="text-align:right">W-L (Picks)</div><div style="text-align:right">ROI</div><div style="text-align:right">Units</div>
+        </div>
+        ${rows.map(rowHtml).join('')}`;
+    } catch (e) {
+      $('#leaderboard').innerHTML = `<div class="empty">Error loading leaderboard: ${e.message}</div>`;
+    }
+  }
+
+  els('.chip').forEach(c => c.addEventListener('click', () => load(c.dataset.window)));
+  load('7d');
+})();
+</script>
+
+</body>
+</html>
