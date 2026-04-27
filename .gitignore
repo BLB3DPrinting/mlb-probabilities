@@ -2,3 +2,7 @@
 .wrangler/
 node_modules/
 *.log
+.env
+.wrangler/
+node_modules/
+*.log
