@@ -1080,7 +1080,7 @@
   }
 
   function gatherFactors(btn) {
-    const container = btn.closest('[data-pick-id]') || btn.parentElement;
+    const container = (btn.parentElement && btn.parentElement.closest('[data-pick-id]')) || btn.parentElement;
     if (!container) return {};
     const ds = container.dataset;
     const out = {};
