@@ -1079,7 +1079,7 @@
     try {
       const [counts, mine] = await Promise.all([
         fetch('/api/pick-counts').then(r => r.json()).catch(() => ({counts:{}})),
-        state.email ? fetch('/api/me/tracked').then(r => r.json()).catch(() => ({pick_ids:[]})) : Promise.resolve({pick_ids:[]}),
+        state.email ? fetch('/api/me/tracked?date=' + (document.querySelector('[data-pick-id]')?.dataset.pickId?.split(':')[0] || new Date().toISOString().slice(0,10))).then(r => r.json()).catch(() => ({pick_ids:[]})) : Promise.resolve({pick_ids:[]}),
       ]);
       state.counts = counts.counts || {};
       state.tracked = new Set(mine.pick_ids || []);
