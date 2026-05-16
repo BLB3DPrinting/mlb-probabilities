@@ -1,0 +1,18 @@
+name = "mlb-probabilities"
+compatibility_date = "2026-04-18"
+main = "./src/worker.js"
+
+[observability]
+enabled = false
+
+[assets]
+directory = "./MLB_Probabilities"
+binding = "ASSETS"
+
+[[assets.run_worker_first]]
+prefix = "/api/*"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mlb-tracking"
+database_id = "c5e7586e-e935-4f75-bd49-c089a4557398"
