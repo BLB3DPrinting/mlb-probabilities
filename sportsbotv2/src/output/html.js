@@ -93,7 +93,9 @@ const ET_TIME_FMT = new Intl.DateTimeFormat('en-US', {
 
 function formatGameTime(isoTime) {
   if (!isoTime) return 'TBD';
-  return ET_TIME_FMT.format(new Date(isoTime)) + ' ET';
+  const d = new Date(isoTime);
+  if (Number.isNaN(d.getTime())) return 'TBD';
+  return ET_TIME_FMT.format(d) + ' ET';
 }
 
 /** Return today's date string (YYYY-MM-DD) in America/New_York timezone. */
@@ -171,8 +173,11 @@ function totalPill(g, date) {
     tactician_total: tact.total ?? 0,
   });
   const reason = escHtml(`Proj ${g.combined} vs line ${g.line} (edge ${edge >= 0 ? '+' : ''}${edge}r). Park ${bd.parkFactor?.toFixed(2) ?? '1.00'}; ${g.away} SP ${(bd.awayStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. ${g.home} SP ${(bd.homeStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. Tactician ${(tact.total ?? 0) >= 0 ? '+' : ''}${(tact.total ?? 0).toFixed(2)}r.`);
+  const pickIdAttr = escHtml(pickId);
+  const lineText = escHtml(String(g.line));
+  const ouLabelText = escHtml(ouLabel);
   const meta = escAttr({ pick_id: pickId, type: 'total', team: null, line: g.line, odds: '-110', units, description: desc, date });
-  return `<div class="pill ${ouCls}" data-pick-id="${pickId}" data-conf-score="${cd.score}" data-edge-pct="${edgePct.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-tip-side="left" data-reason="${reason}"><div class="label">Total</div><div class="value">${ouLabel} ${g.line} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickId}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
+  return `<div class="pill ${ouCls}" data-pick-id="${pickIdAttr}" data-conf-score="${cd.score}" data-edge-pct="${edgePct.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-tip-side="left" data-reason="${reason}"><div class="label">Total</div><div class="value">${ouLabelText} ${lineText} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickIdAttr}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
 }
 
 // ─── Build ML pick pill ───────────────────────────────────────────────────────
@@ -229,8 +234,9 @@ function mlPill(g, date) {
     offense_mult: { away: awayOff, home: homeOff },
   });
   const reason = escHtml(`${teamName} fair ${fmtOdds(pickFairOdds)} vs market ${pickOdds} (edge +${edgePp}pp). SP ERA-eq park-adj ${(bd.awayStarter?.parkAdjusted ?? 4.5).toFixed(2)} vs ${(bd.homeStarter?.parkAdjusted ?? 4.5).toFixed(2)}; offense mult ${awayOff.toFixed(3)}/${homeOff.toFixed(3)}.`);
+  const pickIdAttr = escHtml(pickId);
   const meta = escAttr({ pick_id: pickId, type: 'ml', team: pickTeam, odds: pickOdds, units, description: `${teamName} ML`, date });
-  return `<div class="pill win" data-pick-id="${pickId}" data-conf-score="${cd.score}" data-edge-pct="${pickEdge.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-reason="${reason}"><div class="label">Winner</div><div class="value">${teamNameEsc} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickId}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
+  return `<div class="pill win" data-pick-id="${pickIdAttr}" data-conf-score="${cd.score}" data-edge-pct="${pickEdge.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-reason="${reason}"><div class="label">Winner</div><div class="value">${teamNameEsc} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickIdAttr}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
 }
 
 // ─── Build a single game card ─────────────────────────────────────────────────
@@ -250,11 +256,12 @@ function gameCard(g, date) {
   const ouAttr = g.pick === 'OVER' ? 'over' : g.pick === 'UNDER' ? 'under' : 'neutral';
   const wxAttr = wx.isDome ? '' : `data-weather="${wx.attr}"`;
   const wxReasonAttr = escHtml(wx.reason);
+  const wxLabel = escHtml(wx.label);
   const wxTagHtml = wx.isDome
     ? `<span class="tag dome" data-reason="${wxReasonAttr}">Roof</span>`
     : wx.cls
-      ? `<span class="tag ${wx.cls}" data-reason="${wxReasonAttr}">${wx.label}</span>`
-      : `<span class="tag" data-reason="${wxReasonAttr}">${wx.label}</span>`;
+      ? `<span class="tag ${wx.cls}" data-reason="${wxReasonAttr}">${wxLabel}</span>`
+      : `<span class="tag" data-reason="${wxReasonAttr}">${wxLabel}</span>`;
   const hasLowConf   = !g.awayStarter || !g.homeStarter;
   const healthReason = escHtml(hasLowConf
     ? 'Confidence flag on a starter (TBD).'

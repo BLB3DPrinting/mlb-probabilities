@@ -470,11 +470,20 @@ async function dispatchWorkflow(workflowFile, inputs, env) {
   return { ok: false, error: `GitHub API ${r.status}: ${text.slice(0, 200)}` };
 }
 
-// Reject cross-origin POST requests. Browsers set Sec-Fetch-Site on all fetches;
-// if it's present and not same-origin/same-site, deny to mitigate CSRF.
+// CSRF mitigation for browser-callable POST endpoints.
+// Enforce same-origin Origin when provided, and reject cross-site fetch contexts.
 function checkSameOrigin(request) {
+  const reqUrl = new URL(request.url);
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    try {
+      if (new URL(origin).origin !== reqUrl.origin) return false;
+    } catch {
+      return false;
+    }
+  }
   const sfs = request.headers.get('Sec-Fetch-Site');
-  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site') {
+  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site' && sfs !== 'none') {
     return false;
   }
   return true;
