@@ -157,6 +157,9 @@ for (const g of games) {
 
   const match = odds.find(o => o.away === g.away.abbr && o.home === g.home.abbr);
   const line = match?.total || null;
+  const ml = (match?.awayML || match?.homeML)
+    ? { awayOdds: match.awayML, homeOdds: match.homeML }
+    : null;
 
   let edge = null;
   let pick = 'NO PLAY';
@@ -176,9 +179,12 @@ for (const g of games) {
   results.push({
     away: g.away,
     home: g.home,
+    gameTime: g.gameTime || null,
+    venue: g.venue || null,
     projected,
     combined,
     line,
+    ml,
     edge,
     pick,
     confidence,

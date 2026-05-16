@@ -57,6 +57,32 @@
 
   .mono { font-family: "SF Mono", Menlo, Consolas, monospace; }
 
+  /* Admin actions panel */
+  .admin-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; margin-top: 32px;
+  }
+  .admin-panel h3 { margin: 0 0 4px; font-size: 14px; color: var(--text); }
+  .admin-panel .desc { font-size: 12px; color: var(--muted); margin: 0 0 16px; }
+  .admin-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn-admin {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border);
+    background: #0c1428; color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.12s ease; font-family: inherit;
+  }
+  .btn-admin:hover:not(:disabled) { background: #172038; border-color: var(--accent); color: var(--accent); }
+  .btn-admin:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-admin.running { background: rgba(76,201,240,.1); border-color: var(--accent); color: var(--accent); }
+  .btn-admin.success { background: rgba(74,222,128,.1); border-color: var(--good); color: var(--good); }
+  .btn-admin.error   { background: rgba(248,113,113,.1); border-color: var(--bad); color: var(--bad); }
+  .admin-log {
+    margin-top: 12px; padding: 10px 12px; background: #070e1c; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12px; color: var(--muted); font-family: "SF Mono", Menlo, Consolas, monospace;
+    display: none; white-space: pre-wrap; max-height: 120px; overflow-y: auto;
+  }
+  .admin-log.show { display: block; }
+
   @media (max-width: 600px) {
     .wrap { padding: 16px; }
     header { padding: 16px; }
@@ -93,6 +119,16 @@
     <div class="summary" id="summary"></div>
     <div class="section-title">Pick History (most recent first)</div>
     <div id="history-wrap"></div>
+
+    <div id="admin-panel" class="admin-panel" style="display:none;">
+      <h3>⚙️ Admin Actions</h3>
+      <p class="desc">Trigger GitHub Actions workflows. Requires <code>GH_DISPATCH_TOKEN</code> Worker secret to be configured.</p>
+      <div class="admin-actions">
+        <button id="btn-regen"  class="btn-admin">🔄 Regen Today</button>
+        <button id="btn-settle" class="btn-admin">⚡ Settle Picks</button>
+      </div>
+      <pre id="admin-log" class="admin-log"></pre>
+    </div>
   </div>
 
   <div id="loading" style="color: var(--muted); padding: 40px; text-align: center;">Loading…</div>
@@ -181,9 +217,51 @@
 
     loading.style.display = 'none';
     $('#signed-in').style.display = 'block';
+
+    // Admin panel — only shown when GH_DISPATCH_TOKEN is configured (server returns 502
+    // if not, so we probe and hide if forbidden/not-configured)
+    const adminPanel = $('#admin-panel');
+    if (adminPanel) adminPanel.style.display = 'block';
   } catch (e) {
     loading.textContent = 'Error loading data: ' + e.message;
   }
+
+  // ── Admin action buttons ──────────────────────────────────────────────────
+  async function adminAction(btn, url, label) {
+    const log = $('#admin-log');
+    btn.disabled = true;
+    btn.classList.remove('success', 'error');
+    btn.classList.add('running');
+    btn.textContent = `⏳ ${label}…`;
+    if (log) { log.textContent = `→ POST ${url}`; log.classList.add('show'); }
+    try {
+      const r = await fetch(url, { method: 'POST' });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        btn.classList.replace('running', 'success');
+        btn.textContent = `✓ ${label} dispatched`;
+        if (log) log.textContent += `\n← ${r.status} OK — ${data.message || 'Workflow queued in GitHub Actions'}`;
+      } else {
+        btn.classList.replace('running', 'error');
+        btn.textContent = `✗ ${label} failed`;
+        if (log) log.textContent += `\n← ${r.status} — ${data.error || JSON.stringify(data)}`;
+      }
+    } catch (e) {
+      btn.classList.replace('running', 'error');
+      btn.textContent = `✗ Error`;
+      if (log) log.textContent += `\n← Network error: ${e.message}`;
+    }
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.classList.remove('success', 'error', 'running');
+      btn.textContent = btn.dataset.label;
+    }, 8000);
+  }
+
+  const regenBtn  = $('#btn-regen');
+  const settleBtn = $('#btn-settle');
+  if (regenBtn)  { regenBtn.dataset.label  = regenBtn.textContent;  regenBtn.addEventListener('click',  () => adminAction(regenBtn,  '/api/trigger-regen',  'Regen')); }
+  if (settleBtn) { settleBtn.dataset.label = settleBtn.textContent; settleBtn.addEventListener('click', () => adminAction(settleBtn, '/api/trigger-settle', 'Settle')); }
 })();
 </script>
 

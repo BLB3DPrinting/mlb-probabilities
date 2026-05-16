@@ -12,6 +12,8 @@ export async function fetchSchedule(date) {
       const homeTeam = teams.teams[g.teams.home.team.id];
       games.push({
         gamePk: g.gamePk,
+        gameTime: g.gameDate || null,
+        venue: g.venue?.name || null,
         away: {
           id: g.teams.away.team.id,
           name: g.teams.away.team.name,

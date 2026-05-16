@@ -19,8 +19,14 @@ export function saveResults(date, results) {
     games: results.map(r => ({
       matchup: `${r.away.abbr} @ ${r.home.abbr}`,
       away: r.away.abbr, home: r.home.abbr,
+      awayName: r.away.name, homeName: r.home.name,
+      awayStarter: r.away.starter?.fullName || null,
+      homeStarter: r.home.starter?.fullName || null,
+      gameTime: r.gameTime || null,
+      venue: r.venue || null,
       projected: r.projected, combined: r.combined || r.projected,
       line: r.line, edge: r.edge, pick: r.pick, confidence: r.confidence,
+      ml: r.ml || null,
       breakdown: r.breakdown || null, tactician: r.tactician || null,
     })),
     summary: {

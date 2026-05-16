@@ -1,0 +1,45 @@
+name: Daily MLB Regen
+
+on:
+  schedule:
+    # 10:15 AM ET (14:15 UTC) every day
+    - cron: '15 14 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to generate (YYYY-MM-DD). Defaults to today ET.'
+        required: false
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run SportsBotv2 projections
+        working-directory: sportsbotv2
+        run: node src/index.js ${{ github.event.inputs.date || '' }}
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+
+      - name: Generate HTML
+        working-directory: sportsbotv2
+        run: node src/output/html.js ${{ github.event.inputs.date || '' }}
+
+      - name: Deploy to Cloudflare
+        run: npx --yes wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN }}
+
+      - name: Commit updated HTML
+        run: |
+          git config user.name "MLB Daily Bot"
+          git config user.email "bot@blb3dprinting.com"
+          git add MLB_Probabilities/index.html MLB_Probabilities/props.html
+          git diff --staged --quiet || git commit -m "Daily regen $(date +%Y-%m-%d) — SportsBotv2 auto-generated"
+          git push
