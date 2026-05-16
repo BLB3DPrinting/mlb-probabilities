@@ -2,7 +2,7 @@ name: Daily MLB Regen
 
 on:
   schedule:
-    # 10:15 AM ET during DST (EDT, UTC-4) — adjust to 15:15 UTC in winter
+    # Fixed UTC schedule: 14:15 UTC (10:15 EDT / 09:15 EST)
     - cron: '15 14 * * *'
   workflow_dispatch:
     inputs:
