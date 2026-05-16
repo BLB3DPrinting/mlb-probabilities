@@ -12,6 +12,7 @@ on:
 
 jobs:
   regen:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: write  # needed to push generated HTML back to repo
