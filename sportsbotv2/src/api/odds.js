@@ -46,7 +46,7 @@ export async function fetchOdds() {
         homeML,
         commenceTime: g.commence_time,
       };
-    }).filter(x => x.total != null || x.awayML != null);
+    }).filter(x => x.total != null || (x.awayML != null && x.homeML != null));
 
     // Skip games that have already started
     const preGame = entries.filter(x => {

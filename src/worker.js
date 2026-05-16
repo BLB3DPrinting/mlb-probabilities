@@ -456,7 +456,8 @@ async function dispatchWorkflow(workflowFile, inputs, env) {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github.v3+json',
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
         'Content-Type': 'application/json',
         'User-Agent': 'mlb-probabilities-worker/1.0',
       },
@@ -469,11 +470,25 @@ async function dispatchWorkflow(workflowFile, inputs, env) {
   return { ok: false, error: `GitHub API ${r.status}: ${text.slice(0, 200)}` };
 }
 
+// Reject cross-origin POST requests. Browsers set Sec-Fetch-Site on all fetches;
+// if it's present and not same-origin/same-site, deny to mitigate CSRF.
+function checkSameOrigin(request) {
+  const sfs = request.headers.get('Sec-Fetch-Site');
+  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site') {
+    return false;
+  }
+  return true;
+}
+
 async function handleTriggerRegen(request, env) {
+  if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
   const email = getUserEmail(request);
   if (!email) return json({ error: 'unauthorized' }, 401);
+  // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
+  // allowing any Cloudflare Access user to dispatch workflows.
   const admin = env.ADMIN_EMAIL;
-  if (admin && email !== admin) return json({ error: 'forbidden' }, 403);
+  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
+  if (email !== admin) return json({ error: 'forbidden' }, 403);
 
   const url = new URL(request.url);
   const date = url.searchParams.get('date') || '';
@@ -484,10 +499,14 @@ async function handleTriggerRegen(request, env) {
 }
 
 async function handleTriggerSettle(request, env) {
+  if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
   const email = getUserEmail(request);
   if (!email) return json({ error: 'unauthorized' }, 401);
+  // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
+  // allowing any Cloudflare Access user to dispatch workflows.
   const admin = env.ADMIN_EMAIL;
-  if (admin && email !== admin) return json({ error: 'forbidden' }, 403);
+  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
+  if (email !== admin) return json({ error: 'forbidden' }, 403);
 
   const url = new URL(request.url);
   const date    = url.searchParams.get('date') || '';

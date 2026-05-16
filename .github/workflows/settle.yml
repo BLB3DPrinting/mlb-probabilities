@@ -2,7 +2,7 @@ name: Settle MLB Picks
 
 on:
   schedule:
-    # 3:00 AM ET during DST (UTC-4) / 4:00 AM ET during EST (UTC-5) — after West Coast games finish
+    # 4:00 AM EDT (UTC-4) / 3:00 AM EST (UTC-5) — after West Coast games finish
     - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
@@ -12,7 +12,7 @@ on:
       dry_run:
         description: 'Print settlements without writing to DB'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 jobs:

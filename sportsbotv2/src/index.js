@@ -157,7 +157,7 @@ for (const g of games) {
 
   const match = odds.find(o => o.away === g.away.abbr && o.home === g.home.abbr);
   const line = match?.total || null;
-  const ml = (match?.awayML || match?.homeML)
+  const ml = (match?.awayML && match?.homeML)
     ? { awayOdds: match.awayML, homeOdds: match.homeML }
     : null;
 

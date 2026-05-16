@@ -34,7 +34,7 @@ jobs:
         run: node src/output/html.js ${{ github.event.inputs.date || '' }}
 
       - name: Deploy to Cloudflare
-        run: npx --yes wrangler@4 deploy
+        run: npx --yes wrangler@4.83.0 deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN }}
 

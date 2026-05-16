@@ -218,8 +218,8 @@
     loading.style.display = 'none';
     $('#signed-in').style.display = 'block';
 
-    // Admin panel — only shown when GH_DISPATCH_TOKEN is configured (server returns 502
-    // if not, so we probe and hide if forbidden/not-configured)
+    // Admin panel is shown for all signed-in users. Buttons will return 403
+    // if ADMIN_EMAIL is not configured or the signed-in email doesn't match.
     const adminPanel = $('#admin-panel');
     if (adminPanel) adminPanel.style.display = 'block';
   } catch (e) {

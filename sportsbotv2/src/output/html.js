@@ -31,6 +31,16 @@ function logoUrl(abbr) {
   return id ? `https://www.mlbstatic.com/team-logos/${id}.svg` : '';
 }
 
+/** Escape a value for use in an HTML attribute or text node. */
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Escape a JS object as a &quot;-safe JSON attribute value. */
 function escAttr(obj) {
   return JSON.stringify(obj).replace(/"/g, '&quot;');
 }
@@ -75,17 +85,23 @@ function shortDate(isoDate) {
   return `${DAYS[dt.getUTCDay()].slice(0, 3)}, ${MONTHS_SHORT[m - 1]} ${d}, ${y}`;
 }
 
+// Use Intl.DateTimeFormat for correct ET conversion including DST transitions.
+const ET_TIME_FMT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  hour: 'numeric', minute: '2-digit', hour12: true,
+});
+
 function formatGameTime(isoTime) {
   if (!isoTime) return 'TBD';
-  const d = new Date(isoTime);
-  const month = d.getUTCMonth();
-  // DST: 2nd Sun Mar – 1st Sun Nov (approximate)
-  const offset = (month >= 2 && month <= 9) ? -4 : -5;
-  const h = (d.getUTCHours() + offset + 24) % 24;
-  const min = d.getUTCMinutes().toString().padStart(2, '0');
-  const period = h >= 12 ? 'PM' : 'AM';
-  const hour12 = h % 12 || 12;
-  return `${hour12}:${min} ${period} ET`;
+  return ET_TIME_FMT.format(new Date(isoTime)) + ' ET';
+}
+
+/** Return today's date string (YYYY-MM-DD) in America/New_York timezone. */
+function todayInET() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' })
+    .formatToParts(new Date());
+  const get = t => parts.find(p => p.type === t).value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
 // ─── Confidence helpers ───────────────────────────────────────────────────────
@@ -154,7 +170,7 @@ function totalPill(g, date) {
     home_off_mult: bd.homeOffense?.multiplier ?? 1,
     tactician_total: tact.total ?? 0,
   });
-  const reason = `Proj ${g.combined} vs line ${g.line} (edge ${edge >= 0 ? '+' : ''}${edge}r). Park ${bd.parkFactor?.toFixed(2) ?? '1.00'}; ${g.away} SP ${(bd.awayStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. ${g.home} SP ${(bd.homeStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. Tactician ${(tact.total ?? 0) >= 0 ? '+' : ''}${(tact.total ?? 0).toFixed(2)}r.`;
+  const reason = escHtml(`Proj ${g.combined} vs line ${g.line} (edge ${edge >= 0 ? '+' : ''}${edge}r). Park ${bd.parkFactor?.toFixed(2) ?? '1.00'}; ${g.away} SP ${(bd.awayStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. ${g.home} SP ${(bd.homeStarter?.blended ?? 4.5).toFixed(2)} ERA-eq. Tactician ${(tact.total ?? 0) >= 0 ? '+' : ''}${(tact.total ?? 0).toFixed(2)}r.`);
   const meta = escAttr({ pick_id: pickId, type: 'total', team: null, line: g.line, odds: '-110', units, description: desc, date });
   return `<div class="pill ${ouCls}" data-pick-id="${pickId}" data-conf-score="${cd.score}" data-edge-pct="${edgePct.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-tip-side="left" data-reason="${reason}"><div class="label">Total</div><div class="value">${ouLabel} ${g.line} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickId}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
 }
@@ -195,7 +211,8 @@ function mlPill(g, date) {
     return '<div class="pill neutral"><div class="label">Winner</div><div class="value">No edge <span class="conf-lo">PASS</span></div></div>';
   }
 
-  const teamName = pickTeam === g.away ? (g.awayName || g.away) : (g.homeName || g.home);
+  const teamName    = pickTeam === g.away ? (g.awayName || g.away) : (g.homeName || g.home);
+  const teamNameEsc = escHtml(teamName);
   const edgePp   = Math.round(pickEdge * 1000) / 10;
   const conf     = edgePp >= 8 ? 'high' : edgePp >= 5 ? 'medium' : 'low';
   const cd       = confData(conf);
@@ -211,9 +228,9 @@ function mlPill(g, date) {
     sp_blended: { away: bd.awayStarter?.blended ?? 4.5, home: bd.homeStarter?.blended ?? 4.5 },
     offense_mult: { away: awayOff, home: homeOff },
   });
-  const reason = `${teamName} fair ${fmtOdds(pickFairOdds)} vs market ${pickOdds} (edge +${edgePp}pp). SP ERA-eq park-adj ${(bd.awayStarter?.parkAdjusted ?? 4.5).toFixed(2)} vs ${(bd.homeStarter?.parkAdjusted ?? 4.5).toFixed(2)}; offense mult ${awayOff.toFixed(3)}/${homeOff.toFixed(3)}.`;
+  const reason = escHtml(`${teamName} fair ${fmtOdds(pickFairOdds)} vs market ${pickOdds} (edge +${edgePp}pp). SP ERA-eq park-adj ${(bd.awayStarter?.parkAdjusted ?? 4.5).toFixed(2)} vs ${(bd.homeStarter?.parkAdjusted ?? 4.5).toFixed(2)}; offense mult ${awayOff.toFixed(3)}/${homeOff.toFixed(3)}.`);
   const meta = escAttr({ pick_id: pickId, type: 'ml', team: pickTeam, odds: pickOdds, units, description: `${teamName} ML`, date });
-  return `<div class="pill win" data-pick-id="${pickId}" data-conf-score="${cd.score}" data-edge-pct="${pickEdge.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-reason="${reason}"><div class="label">Winner</div><div class="value">${teamName} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickId}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
+  return `<div class="pill win" data-pick-id="${pickId}" data-conf-score="${cd.score}" data-edge-pct="${pickEdge.toFixed(3)}" data-weather-cert="1.0" data-lineup-cert="1.0" data-factors="${factors}" data-reason="${reason}"><div class="label">Winner</div><div class="value">${teamNameEsc} ${cd.html}</div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${pickId}" data-pick-meta="${meta}" title="Sign in to track picks">Track</button></div></div>`;
 }
 
 // ─── Build a single game card ─────────────────────────────────────────────────
@@ -221,33 +238,34 @@ function gameCard(g, date) {
   const wx = weatherTag(g);
   const cd = confData(g.confidence);
   const { pAway, pHome } = modelWinProbs(g);
-  const awayName   = g.awayName  || g.away;
-  const homeName   = g.homeName  || g.home;
-  const time       = formatGameTime(g.gameTime);
-  const venue      = g.venue || '';
-  const timeVenue  = time + (venue ? ` · ${venue}` : '');
-  const awayStarter = g.awayStarter || 'TBD';
-  const homeStarter = g.homeStarter || 'TBD';
+  const awayName    = escHtml(g.awayName  || g.away);
+  const homeName    = escHtml(g.homeName  || g.home);
+  const time        = formatGameTime(g.gameTime);
+  const venue       = escHtml(g.venue || '');
+  const timeVenue   = time + (venue ? ` · ${venue}` : '');
+  const awayStarter = escHtml(g.awayStarter || 'TBD');
+  const homeStarter = escHtml(g.homeStarter || 'TBD');
+  const awayAbbr    = escHtml(g.away);
+  const homeAbbr    = escHtml(g.home);
   const ouAttr = g.pick === 'OVER' ? 'over' : g.pick === 'UNDER' ? 'under' : 'neutral';
   const wxAttr = wx.isDome ? '' : `data-weather="${wx.attr}"`;
+  const wxReasonAttr = escHtml(wx.reason);
   const wxTagHtml = wx.isDome
-    ? `<span class="tag dome" data-reason="${wx.reason}">Roof</span>`
+    ? `<span class="tag dome" data-reason="${wxReasonAttr}">Roof</span>`
     : wx.cls
-      ? `<span class="tag ${wx.cls}" data-reason="${wx.reason}">${wx.label}</span>`
-      : `<span class="tag" data-reason="${wx.reason}">${wx.label}</span>`;
-  const bd = g.breakdown || {};
-  const wxReason     = wx.isDome ? 'Roofed venue — weather minimal.' : wx.reason;
+      ? `<span class="tag ${wx.cls}" data-reason="${wxReasonAttr}">${wx.label}</span>`
+      : `<span class="tag" data-reason="${wxReasonAttr}">${wx.label}</span>`;
   const hasLowConf   = !g.awayStarter || !g.homeStarter;
-  const healthReason = hasLowConf
+  const healthReason = escHtml(hasLowConf
     ? 'Confidence flag on a starter (TBD).'
-    : 'Probables posted.';
+    : 'Probables posted.');
 
-  return `<article class="card" data-conf="${cd.key}" data-ou="${ouAttr}" ${wxAttr} data-injury="none"><div class="head"><div><div class="matchup"><span class="matchup-logos"><img class="team-logo sm" src="${logoUrl(g.away)}" alt="${g.away}" loading="lazy" />${awayName}<span class="vs">@</span><img class="team-logo sm" src="${logoUrl(g.home)}" alt="${g.home}" loading="lazy" />${homeName}</span></div><div class="time">${timeVenue}</div></div>${wxTagHtml}</div><div class="pitchers"><b>${g.away}:</b> ${awayStarter} · <b>${g.home}:</b> ${homeStarter}</div><div class="probs"><span class="away">${awayName} ${pAway}%</span><span class="home">${homeName} ${pHome}%</span></div><div class="bar"><span style="width:${pHome}%"></span></div><div class="pick-row">${mlPill(g, date)}${totalPill(g, date)}</div><div class="factors"><div class="block" data-reason="${wxReason}"><b>Weather:</b> ${wxReason}</div><div class="block" data-reason="${healthReason}"><b>Health:</b> ${healthReason}</div></div></article>`;
+  return `<article class="card" data-conf="${cd.key}" data-ou="${ouAttr}" ${wxAttr} data-injury="none"><div class="head"><div><div class="matchup"><span class="matchup-logos"><img class="team-logo sm" src="${logoUrl(g.away)}" alt="${awayAbbr}" loading="lazy" />${awayName}<span class="vs">@</span><img class="team-logo sm" src="${logoUrl(g.home)}" alt="${homeAbbr}" loading="lazy" />${homeName}</span></div><div class="time">${timeVenue}</div></div>${wxTagHtml}</div><div class="pitchers"><b>${awayAbbr}:</b> ${awayStarter} · <b>${homeAbbr}:</b> ${homeStarter}</div><div class="probs"><span class="away">${awayName} ${pAway}%</span><span class="home">${homeName} ${pHome}%</span></div><div class="bar"><span style="width:${pHome}%"></span></div><div class="pick-row">${mlPill(g, date)}${totalPill(g, date)}</div><div class="factors"><div class="block" data-reason="${wxReasonAttr}"><b>Weather:</b> ${wxReasonAttr}</div><div class="block" data-reason="${healthReason}"><b>Health:</b> ${healthReason}</div></div></article>`;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 function main() {
-  const today = process.argv[2] || new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const today = process.argv[2] || todayInET();
   const jsonPath = join(DATA_DIR, `${today}.json`);
 
   if (!existsSync(jsonPath)) {
@@ -278,16 +296,15 @@ function main() {
 
   const ld = longDate(date);
   const sd = shortDate(date);
-  // Build timestamp in ET (UTC-4 during DST, UTC-5 during EST)
-  const nowUtc = new Date();
-  const nowMonth = nowUtc.getUTCMonth();
-  const etOffset = (nowMonth >= 2 && nowMonth <= 9) ? -4 : -5; // Mar–Oct = EDT
-  const etHour = (nowUtc.getUTCHours() + etOffset + 24) % 24;
-  const period = etHour >= 12 ? 'PM' : 'AM';
-  const hour12 = etHour % 12 || 12;
-  const etMin  = nowUtc.getUTCMinutes().toString().padStart(2, '0');
-  const nowStr = `${sd} · ${hour12}:${etMin} ${period} ET`;
-  const isoTs  = nowUtc.toISOString();
+  // Use Intl for correct ET time including DST
+  const isoTs  = new Date().toISOString();
+  const etTimeParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  }).formatToParts(new Date());
+  const etTime = etTimeParts.filter(p => p.type !== 'literal' || p.value !== ' ')
+    .map(p => p.value).join('').replace(/\s*(AM|PM)$/, ' $1');
+  const nowStr = `${sd} · ${etTime} ET`;
 
   // ── Patch index.html ─────────────────────────────────────────────────────
   const idxPath = join(SITE, 'index.html');
