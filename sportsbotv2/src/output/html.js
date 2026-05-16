@@ -178,6 +178,8 @@ function mlPill(g, date) {
 
   const edgeAway = modAway - fairAway;
   const edgeHome = modHome - fairHome;
+  // 3% edge threshold — minimum model vs market gap to generate a pick.
+  // Below this the edge is within the margin of error for the offense/SP model.
   const EDGE_THRESHOLD = 0.03;
 
   let pickTeam = null, pickEdge = 0, pickOdds = '', pickFairOdds = 0, pickModProb = 0, pickFairProb = 0;
@@ -276,8 +278,16 @@ function main() {
 
   const ld = longDate(date);
   const sd = shortDate(date);
-  const nowStr = `${sd} · ${new Date().getHours() % 12 || 12}:00 ${new Date().getHours() >= 12 ? 'PM' : 'AM'} ET`;
-  const isoTs  = new Date().toISOString();
+  // Build timestamp in ET (UTC-4 during DST, UTC-5 during EST)
+  const nowUtc = new Date();
+  const nowMonth = nowUtc.getUTCMonth();
+  const etOffset = (nowMonth >= 2 && nowMonth <= 9) ? -4 : -5; // Mar–Oct = EDT
+  const etHour = (nowUtc.getUTCHours() + etOffset + 24) % 24;
+  const period = etHour >= 12 ? 'PM' : 'AM';
+  const hour12 = etHour % 12 || 12;
+  const etMin  = nowUtc.getUTCMinutes().toString().padStart(2, '0');
+  const nowStr = `${sd} · ${hour12}:${etMin} ${period} ET`;
+  const isoTs  = nowUtc.toISOString();
 
   // ── Patch index.html ─────────────────────────────────────────────────────
   const idxPath = join(SITE, 'index.html');

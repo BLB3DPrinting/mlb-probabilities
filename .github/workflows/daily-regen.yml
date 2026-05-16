@@ -2,7 +2,7 @@ name: Daily MLB Regen
 
 on:
   schedule:
-    # 10:15 AM ET (14:15 UTC) every day
+    # 10:15 AM ET during DST (EDT, UTC-4) — adjust to 15:15 UTC in winter
     - cron: '15 14 * * *'
   workflow_dispatch:
     inputs:
@@ -13,6 +13,8 @@ on:
 jobs:
   regen:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push generated HTML back to repo
     steps:
       - uses: actions/checkout@v4
 
