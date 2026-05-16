@@ -489,8 +489,13 @@ function checkSameOrigin(request) {
   return true;
 }
 
+function checkAdminActionHeader(request) {
+  return request.headers.get('X-Admin-Action') === '1';
+}
+
 async function handleTriggerRegen(request, env) {
   if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
+  if (!checkAdminActionHeader(request)) return json({ error: 'forbidden' }, 403);
   const email = getUserEmail(request);
   if (!email) return json({ error: 'unauthorized' }, 401);
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
@@ -509,6 +514,7 @@ async function handleTriggerRegen(request, env) {
 
 async function handleTriggerSettle(request, env) {
   if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
+  if (!checkAdminActionHeader(request)) return json({ error: 'forbidden' }, 403);
   const email = getUserEmail(request);
   if (!email) return json({ error: 'unauthorized' }, 401);
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid

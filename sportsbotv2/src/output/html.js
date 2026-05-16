@@ -15,6 +15,7 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..', '..'); // sportsbotv2/
 const SITE = join(ROOT, '..', 'MLB_Probabilities');
 const DATA_DIR = join(ROOT, 'data', 'results');
+const ET_TZ = 'America/New_York';
 
 // ─── Team logo IDs ────────────────────────────────────────────────────────────
 const TEAM_IDS = {
@@ -87,7 +88,7 @@ function shortDate(isoDate) {
 
 // Use Intl.DateTimeFormat for correct ET conversion including DST transitions.
 const ET_TIME_FMT = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'America/New_York',
+  timeZone: ET_TZ,
   hour: 'numeric', minute: '2-digit', hour12: true,
 });
 
@@ -100,7 +101,7 @@ function formatGameTime(isoTime) {
 
 /** Return today's date string (YYYY-MM-DD) in America/New_York timezone. */
 function todayInET() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' })
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: ET_TZ })
     .formatToParts(new Date());
   const get = t => parts.find(p => p.type === t).value;
   return `${get('year')}-${get('month')}-${get('day')}`;
@@ -306,7 +307,7 @@ function main() {
   // Use Intl for correct ET time including DST
   const isoTs  = new Date().toISOString();
   const etTimeParts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
+    timeZone: ET_TZ,
     hour: 'numeric', minute: '2-digit', hour12: true,
   }).formatToParts(new Date());
   const etTime = etTimeParts.filter(p => p.type !== 'literal' || p.value !== ' ')

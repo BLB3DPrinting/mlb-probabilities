@@ -235,7 +235,10 @@
     btn.textContent = `⏳ ${label}…`;
     if (log) { log.textContent = `→ POST ${url}`; log.classList.add('show'); }
     try {
-      const r = await fetch(url, { method: 'POST' });
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-Admin-Action': '1' },
+      });
       const data = await r.json().catch(() => ({}));
       if (r.ok) {
         btn.classList.replace('running', 'success');
