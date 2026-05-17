@@ -122,7 +122,7 @@
 
     <div id="admin-panel" class="admin-panel" style="display:none;">
       <h3>⚙️ Admin Actions</h3>
-      <p class="desc">Trigger GitHub Actions workflows. Requires <code>GH_DISPATCH_TOKEN</code> Worker secret to be configured.</p>
+      <p id="admin-desc" class="desc">Trigger GitHub Actions workflows. Requires <code>ADMIN_EMAIL</code> and <code>GH_DISPATCH_TOKEN</code> to be configured.</p>
       <div class="admin-actions">
         <button id="btn-regen"  class="btn-admin">🔄 Regen Today</button>
         <button id="btn-settle" class="btn-admin">⚡ Settle Picks</button>
@@ -138,6 +138,7 @@
 (async () => {
   const $ = q => document.querySelector(q);
   const loading = $('#loading');
+  let adminActions = {};
 
   function statCard(k, v, cls='') {
     return `<div class="stat"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`;
@@ -183,6 +184,7 @@
       $('#signed-out').style.display = 'block';
       return;
     }
+    adminActions = who.admin_actions || {};
     $('#user-sub').textContent = `Signed in as ${who.email}`;
 
     const data = await fetch('/api/me/stats').then(r => r.json());
@@ -218,10 +220,17 @@
     loading.style.display = 'none';
     $('#signed-in').style.display = 'block';
 
-    // Admin panel is shown for all signed-in users. Buttons will return 403
-    // if ADMIN_EMAIL is not configured or the signed-in email doesn't match.
     const adminPanel = $('#admin-panel');
+    const adminDesc = $('#admin-desc');
+    const adminMessages = {
+      unauthorized: 'Please sign in to access admin actions.',
+      missing_admin_email: 'Admin actions are disabled until the Worker ADMIN_EMAIL variable is set.',
+      missing_dispatch_token: 'Admin actions are disabled until the Worker GH_DISPATCH_TOKEN secret is set.',
+      forbidden: 'Admin actions are available only to the configured admin account.',
+    };
+    const adminUnavailableMessage = adminMessages[adminActions.code] || '';
     if (adminPanel) adminPanel.style.display = 'block';
+    if (adminDesc && adminUnavailableMessage) adminDesc.textContent = adminUnavailableMessage;
   } catch (e) {
     loading.textContent = 'Error loading data: ' + e.message;
   }
@@ -247,7 +256,7 @@
       } else {
         btn.classList.replace('running', 'error');
         btn.textContent = `✗ ${label} failed`;
-        if (log) log.textContent += `\n← ${r.status} — ${data.error || JSON.stringify(data)}`;
+        if (log) log.textContent += `\n← ${r.status} — ${data.error || data.message || JSON.stringify(data)}`;
       }
     } catch (e) {
       btn.classList.replace('running', 'error');
@@ -263,8 +272,17 @@
 
   const regenBtn  = $('#btn-regen');
   const settleBtn = $('#btn-settle');
-  if (regenBtn)  { regenBtn.dataset.label  = regenBtn.textContent;  regenBtn.addEventListener('click',  () => adminAction(regenBtn,  '/api/trigger-regen',  'Regen')); }
-  if (settleBtn) { settleBtn.dataset.label = settleBtn.textContent; settleBtn.addEventListener('click', () => adminAction(settleBtn, '/api/trigger-settle', 'Settle')); }
+  const adminDispatchEnabled = !!adminActions.can_dispatch;
+  if (regenBtn)  {
+    regenBtn.dataset.label = regenBtn.textContent;
+    regenBtn.disabled = !adminDispatchEnabled;
+    if (adminDispatchEnabled) regenBtn.addEventListener('click', () => adminAction(regenBtn, '/api/trigger-regen', 'Regen'));
+  }
+  if (settleBtn) {
+    settleBtn.dataset.label = settleBtn.textContent;
+    settleBtn.disabled = !adminDispatchEnabled;
+    if (adminDispatchEnabled) settleBtn.addEventListener('click', () => adminAction(settleBtn, '/api/trigger-settle', 'Settle'));
+  }
 })();
 </script>
 
