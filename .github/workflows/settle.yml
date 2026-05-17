@@ -1,0 +1,44 @@
+name: Settle MLB Picks
+
+on:
+  schedule:
+    # 4:00 AM EDT (UTC-4) / 3:00 AM EST (UTC-5) — after West Coast games finish
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to settle (YYYY-MM-DD). Defaults to yesterday ET.'
+        required: false
+      dry_run:
+        description: 'Print settlements without writing to DB'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Settle picks
+        run: |
+          DATE_ARG=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            DATE_ARG="--date ${{ github.event.inputs.date }}"
+          fi
+          DRY_ARG=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            DRY_ARG="--dry-run"
+          fi
+          python3 settle_picks.py $DATE_ARG $DRY_ARG
+        env:
+          SETTLE_SECRET: ${{ secrets.SETTLE_SECRET }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}

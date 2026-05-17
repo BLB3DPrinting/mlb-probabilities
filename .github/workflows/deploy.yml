@@ -1,0 +1,27 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'MLB_Probabilities/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy via Wrangler
+        run: npx --yes wrangler@4.83.0 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN }}

@@ -443,6 +443,95 @@ async function handleSettleBatch(request, env) {
   return json({ ok: true, written: res.length });
 }
 
+// ── GitHub Actions dispatch helpers ──────────────────────────────────────────
+
+async function dispatchWorkflow(workflowFile, inputs, env) {
+  const token = env.GH_DISPATCH_TOKEN;
+  const repo  = env.GH_REPO || 'Blb3D/mlb-probabilities';
+  if (!token) return { ok: false, error: 'GH_DISPATCH_TOKEN not configured' };
+
+  const r = await fetch(
+    `https://api.github.com/repos/${repo}/actions/workflows/${workflowFile}/dispatches`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+        'User-Agent': 'mlb-probabilities-worker/1.0',
+      },
+      body: JSON.stringify({ ref: 'master', inputs: inputs || {} }),
+    }
+  );
+
+  if (r.status === 204) return { ok: true };
+  const text = await r.text().catch(() => '');
+  return { ok: false, error: `GitHub API ${r.status}: ${text.slice(0, 200)}` };
+}
+
+// CSRF mitigation for browser-callable POST endpoints.
+// Enforce same-origin Origin when provided, and reject cross-site fetch contexts.
+function checkSameOrigin(request) {
+  const reqUrl = new URL(request.url);
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    try {
+      if (new URL(origin).origin !== reqUrl.origin) return false;
+    } catch {
+      return false;
+    }
+  }
+  const sfs = request.headers.get('Sec-Fetch-Site');
+  if (sfs && sfs !== 'same-origin' && sfs !== 'same-site' && sfs !== 'none') {
+    return false;
+  }
+  return true;
+}
+
+function checkAdminActionHeader(request) {
+  return request.headers.get('X-Admin-Action') === '1';
+}
+
+async function handleTriggerRegen(request, env) {
+  if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
+  if (!checkAdminActionHeader(request)) return json({ error: 'forbidden' }, 403);
+  const email = getUserEmail(request);
+  if (!email) return json({ error: 'unauthorized' }, 401);
+  // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
+  // allowing any Cloudflare Access user to dispatch workflows.
+  const admin = env.ADMIN_EMAIL;
+  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
+  if (email !== admin) return json({ error: 'forbidden' }, 403);
+
+  const url = new URL(request.url);
+  const date = url.searchParams.get('date') || '';
+
+  const result = await dispatchWorkflow('daily-regen.yml', date ? { date } : {}, env);
+  if (!result.ok) return json({ error: result.error }, 502);
+  return json({ ok: true, message: 'Regen workflow dispatched' });
+}
+
+async function handleTriggerSettle(request, env) {
+  if (!checkSameOrigin(request)) return json({ error: 'forbidden' }, 403);
+  if (!checkAdminActionHeader(request)) return json({ error: 'forbidden' }, 403);
+  const email = getUserEmail(request);
+  if (!email) return json({ error: 'unauthorized' }, 401);
+  // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
+  // allowing any Cloudflare Access user to dispatch workflows.
+  const admin = env.ADMIN_EMAIL;
+  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
+  if (email !== admin) return json({ error: 'forbidden' }, 403);
+
+  const url = new URL(request.url);
+  const date    = url.searchParams.get('date') || '';
+  const dry_run = url.searchParams.get('dry_run') === 'true' ? 'true' : 'false';
+
+  const result = await dispatchWorkflow('settle.yml', { ...(date ? { date } : {}), dry_run }, env);
+  if (!result.ok) return json({ error: result.error }, 502);
+  return json({ ok: true, message: 'Settle workflow dispatched' });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -467,6 +556,10 @@ export default {
       return handleSettleBatch(request, env);
     if (p === '/api/close-odds' && request.method === 'POST')
       return handleCloseOdds(request, env);
+    if (p === '/api/trigger-regen' && request.method === 'POST')
+      return handleTriggerRegen(request, env);
+    if (p === '/api/trigger-settle' && request.method === 'POST')
+      return handleTriggerSettle(request, env);
 
     if (p.startsWith('/api/'))
       return json({ error: 'not_found' }, 404);
