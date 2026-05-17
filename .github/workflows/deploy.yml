@@ -5,8 +5,10 @@ on:
     branches: [master]
     paths:
       - 'MLB_Probabilities/**'
+      - 'sportsbotv2/**'
       - 'src/**'
       - 'wrangler.jsonc'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
@@ -20,6 +22,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Install SportsBot dependencies
+        working-directory: sportsbotv2
+        run: npm install --no-fund --no-audit
+
+      - name: Regenerate latest projections
+        working-directory: sportsbotv2
+        run: node src/index.js
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+
+      - name: Regenerate site HTML
+        working-directory: sportsbotv2
+        run: node src/output/html.js
 
       - name: Deploy via Wrangler
         run: npx --yes wrangler@4.83.0 deploy
