@@ -255,7 +255,7 @@
       } else {
         btn.classList.replace('running', 'error');
         btn.textContent = `✗ ${label} failed`;
-        if (log) log.textContent += `\n← ${r.status} — ${data.message || data.error || JSON.stringify(data)}`;
+        if (log) log.textContent += `\n← ${r.status} — ${data.error || data.message || JSON.stringify(data)}`;
       }
     } catch (e) {
       btn.classList.replace('running', 'error');
