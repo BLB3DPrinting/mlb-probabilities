@@ -222,14 +222,12 @@
 
     const adminPanel = $('#admin-panel');
     const adminDesc = $('#admin-desc');
-    const adminUnavailableMessage =
-      adminActions.error === 'ADMIN_EMAIL not configured'
-        ? 'Admin actions are disabled until the Worker ADMIN_EMAIL variable is set.'
-        : adminActions.error === 'GH_DISPATCH_TOKEN not configured'
-          ? 'Admin actions are disabled until the Worker GH_DISPATCH_TOKEN secret is set.'
-          : adminActions.error === 'forbidden'
-            ? 'Admin actions are available only to the configured admin account.'
-            : '';
+    const adminMessages = {
+      'ADMIN_EMAIL not configured': 'Admin actions are disabled until the Worker ADMIN_EMAIL variable is set.',
+      'GH_DISPATCH_TOKEN not configured': 'Admin actions are disabled until the Worker GH_DISPATCH_TOKEN secret is set.',
+      forbidden: 'Admin actions are available only to the configured admin account.',
+    };
+    const adminUnavailableMessage = adminMessages[adminActions.error] || '';
     if (adminPanel) adminPanel.style.display = 'block';
     if (adminDesc && adminUnavailableMessage) adminDesc.textContent = adminUnavailableMessage;
   } catch (e) {
