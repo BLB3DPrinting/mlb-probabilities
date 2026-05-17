@@ -5,8 +5,10 @@ on:
     branches: [master]
     paths:
       - 'MLB_Probabilities/**'
+      - 'sportsbotv2/**'
       - 'src/**'
       - 'wrangler.jsonc'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
