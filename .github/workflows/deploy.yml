@@ -21,6 +21,10 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install SportsBot dependencies
+        working-directory: sportsbotv2
+        run: npm install --no-fund --no-audit
+
       - name: Regenerate latest projections
         working-directory: sportsbotv2
         run: node src/index.js
