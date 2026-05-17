@@ -336,7 +336,7 @@ function main() {
     `<div class="grid" id="grid">\n${cardHtml}\n</div>\n\n$1`);
 
   // Footer timestamp (two badges)
-  html = html.replace(/<span class="updated-badge"[\s\S]*?<\/span>[^<]*<\/span>/,
+  html = html.replace(/<span class="updated-badge"[\s\S]*?<\/span>(?:[^<]*<\/span>)?/,
     `<span class="updated-badge" data-ts="${isoTs}" title="Last automated refresh"><span class="dot"></span> ${nowStr}</span>`);
   html = html.replace(/<div class="last-updated-badge"[\s\S]*?<\/div>/,
     `<div class="last-updated-badge" data-ts="${isoTs}" title="Last automated refresh"><span class="lu-dot" aria-hidden="true"></span><span class="lu-label">Updated</span><span class="lu-value">${nowStr}</span></div>`);
