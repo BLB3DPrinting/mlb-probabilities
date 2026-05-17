@@ -24,20 +24,24 @@ function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
+function adminActionStatus(canDispatch, code = null, message = null) {
+  return { canDispatch, code, message };
+}
+
 function getAdminActionStatus(email, env) {
   const admin = normalizeEmail(env.ADMIN_EMAIL);
   const user = normalizeEmail(email);
 
   if (!admin) {
-    return { canDispatch: false, error: 'ADMIN_EMAIL not configured' };
+    return adminActionStatus(false, 'missing_admin_email', 'ADMIN_EMAIL not configured');
   }
   if (!env.GH_DISPATCH_TOKEN) {
-    return { canDispatch: false, error: 'GH_DISPATCH_TOKEN not configured' };
+    return adminActionStatus(false, 'missing_dispatch_token', 'GH_DISPATCH_TOKEN not configured');
   }
   if (!user || user !== admin) {
-    return { canDispatch: false, error: 'forbidden' };
+    return adminActionStatus(false, 'forbidden', 'Only the configured admin account can run this action');
   }
-  return { canDispatch: true, error: null };
+  return adminActionStatus(true);
 }
 
 async function ensureUser(db, email) {
@@ -521,7 +525,7 @@ async function handleTriggerRegen(request, env) {
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
   // allowing any Cloudflare Access user to dispatch workflows.
   const adminStatus = getAdminActionStatus(email, env);
-  if (!adminStatus.canDispatch) return json({ error: adminStatus.error }, 403);
+  if (!adminStatus.canDispatch) return json({ error: adminStatus.message }, 403);
 
   const url = new URL(request.url);
   const date = url.searchParams.get('date') || '';
@@ -539,7 +543,7 @@ async function handleTriggerSettle(request, env) {
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
   // allowing any Cloudflare Access user to dispatch workflows.
   const adminStatus = getAdminActionStatus(email, env);
-  if (!adminStatus.canDispatch) return json({ error: adminStatus.error }, 403);
+  if (!adminStatus.canDispatch) return json({ error: adminStatus.message }, 403);
 
   const url = new URL(request.url);
   const date    = url.searchParams.get('date') || '';
@@ -558,12 +562,15 @@ export default {
     if (p === '/api/health') return json({ ok: true, time: Date.now() });
     if (p === '/api/whoami') {
       const email = getUserEmail(request);
-      const adminActions = getAdminActionStatus(email, env);
+      const adminActions = email
+        ? getAdminActionStatus(email, env)
+        : adminActionStatus(false, 'unauthorized');
       return json({
         email,
         admin_actions: {
           can_dispatch: adminActions.canDispatch,
-          error: adminActions.error,
+          code: adminActions.code,
+          message: adminActions.message,
         },
       });
     }
