@@ -350,7 +350,9 @@ function main() {
     let props = readFileSync(propsPath, 'utf8');
     props = props.replace(/<title>MLB Player Props[^<]*<\/title>/,
       `<title>MLB Player Props — ${ld}</title>`);
-    // Update props last-updated badge if it exists
+    // Update props footer timestamps if they exist
+    props = props.replace(/<span class="updated-badge"[\s\S]*?<\/span>[^<]*<\/span>/,
+      `<span class="updated-badge" data-ts="${isoTs}" title="Last automated refresh"><span class="dot"></span> ${nowStr}</span>`);
     props = props.replace(/<div class="last-updated-badge"[\s\S]*?<\/div>/,
       `<div class="last-updated-badge" data-ts="${isoTs}" title="Last automated refresh"><span class="lu-dot" aria-hidden="true"></span><span class="lu-label">Updated</span><span class="lu-value">${nowStr}</span></div>`);
     writeFileSync(propsPath, props, 'utf8');
