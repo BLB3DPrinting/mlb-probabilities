@@ -20,6 +20,26 @@ function getUserEmail(request) {
   );
 }
 
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function getAdminActionStatus(email, env) {
+  const admin = normalizeEmail(env.ADMIN_EMAIL);
+  const user = normalizeEmail(email);
+
+  if (!admin) {
+    return { canDispatch: false, error: 'ADMIN_EMAIL not configured' };
+  }
+  if (!env.GH_DISPATCH_TOKEN) {
+    return { canDispatch: false, error: 'GH_DISPATCH_TOKEN not configured' };
+  }
+  if (!user || user !== admin) {
+    return { canDispatch: false, error: 'forbidden' };
+  }
+  return { canDispatch: true, error: null };
+}
+
 async function ensureUser(db, email) {
   await db
     .prepare(
@@ -500,9 +520,8 @@ async function handleTriggerRegen(request, env) {
   if (!email) return json({ error: 'unauthorized' }, 401);
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
   // allowing any Cloudflare Access user to dispatch workflows.
-  const admin = env.ADMIN_EMAIL;
-  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
-  if (email !== admin) return json({ error: 'forbidden' }, 403);
+  const adminStatus = getAdminActionStatus(email, env);
+  if (!adminStatus.canDispatch) return json({ error: adminStatus.error }, 403);
 
   const url = new URL(request.url);
   const date = url.searchParams.get('date') || '';
@@ -519,9 +538,8 @@ async function handleTriggerSettle(request, env) {
   if (!email) return json({ error: 'unauthorized' }, 401);
   // ADMIN_EMAIL must be configured; if unset the endpoint is disabled to avoid
   // allowing any Cloudflare Access user to dispatch workflows.
-  const admin = env.ADMIN_EMAIL;
-  if (!admin) return json({ error: 'ADMIN_EMAIL not configured' }, 403);
-  if (email !== admin) return json({ error: 'forbidden' }, 403);
+  const adminStatus = getAdminActionStatus(email, env);
+  if (!adminStatus.canDispatch) return json({ error: adminStatus.error }, 403);
 
   const url = new URL(request.url);
   const date    = url.searchParams.get('date') || '';
@@ -540,7 +558,14 @@ export default {
     if (p === '/api/health') return json({ ok: true, time: Date.now() });
     if (p === '/api/whoami') {
       const email = getUserEmail(request);
-      return json({ email });
+      const adminActions = getAdminActionStatus(email, env);
+      return json({
+        email,
+        admin_actions: {
+          can_dispatch: adminActions.canDispatch,
+          error: adminActions.error,
+        },
+      });
     }
     if (p === '/api/track' && request.method === 'POST')
       return handleTrack(request, env);
