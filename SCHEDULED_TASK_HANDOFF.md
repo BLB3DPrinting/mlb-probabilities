@@ -52,6 +52,7 @@ Critical fields:
 
 - `main` — pointer to the Worker script. Missing this = static-assets-only bundle.
 - `assets.run_worker_first: ["/api/*"]` — sends `/api/*` to the Worker; everything else to static assets.
+- `vars.ADMIN_EMAIL` — identifies the Cloudflare Access user allowed to use admin-only UI actions (`bbaker@blb3dprinting.com`). This is plain configuration, not a secret. If the deployed Worker exposes GitHub-dispatch admin actions, it also needs a `GH_DISPATCH_TOKEN` secret.
 - `d1_databases.DB` — binding the Worker reads as `env.DB`.
 - NOT declared: `SETTLE_SECRET`. That's a secret, set separately via `wrangler secret put SETTLE_SECRET`, and it persists across deploys as long as the Worker script is not wiped.
 
@@ -146,6 +147,7 @@ echo "d89cf7d52fe37d5e0956d0e2fa79eccc3cb236daa695c0523f8371a99d0fb0fe" | \
 - D1: `mlb-tracking` (`c5e7586e-e935-4f75-bd49-c089a4557398`)
 - Cloudflare Access: enabled on `mlb-probabilities.bbaker-939.workers.dev/*`,
   policy allows bbaker@blb3dprinting.com via One-time PIN
+- ADMIN_EMAIL: declared in Wrangler config as `bbaker@blb3dprinting.com`; deploy the Worker after changing this value. GitHub-dispatch admin actions also require a `GH_DISPATCH_TOKEN` Worker secret if those endpoints are present.
 - API token: scoped to `Workers Scripts:Edit`, `D1:Edit`, `Account Settings:Read`,
   `Memberships:Read`, `User Details:Read` (the last 3 are for `wrangler d1` commands)
 - SETTLE_SECRET: may need re-setting after Apr 22-23 strip-down incident

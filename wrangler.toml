@@ -1,4 +1,5 @@
 name = "mlb-probabilities"
+account_id = "9393ba26563604d847b6e1d03a2faa55"
 compatibility_date = "2026-04-18"
 main = "./src/worker.js"
 
@@ -8,6 +9,9 @@ enabled = false
 [assets]
 directory = "./MLB_Probabilities"
 binding = "ASSETS"
+
+[vars]
+ADMIN_EMAIL = "bbaker@blb3dprinting.com"
 
 [[assets.run_worker_first]]
 prefix = "/api/*"

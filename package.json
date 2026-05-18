@@ -1,0 +1,10 @@
+{
+  "name": "mlb-probabilities-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "verify:fresh": "node scripts/verify-fresh-assets.mjs"
+  }
+}
