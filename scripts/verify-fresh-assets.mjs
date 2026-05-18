@@ -19,6 +19,20 @@ for (const file of files) {
     console.error(`${file} still contains stale 2026-05-14 content`);
     failed = true;
   }
+  const stalePickDates = [...html.matchAll(/data-pick-id="(\d{4}-\d{2}-\d{2}):/g)]
+    .map((match) => match[1])
+    .filter((date) => date !== expected);
+  if (stalePickDates.length > 0) {
+    console.error(`${file} contains stale pick dates: ${[...new Set(stalePickDates)].join(', ')}`);
+    failed = true;
+  }
+  const staleMetaDates = [...html.matchAll(/&quot;date&quot;:\s*&quot;(\d{4}-\d{2}-\d{2})&quot;/g)]
+    .map((match) => match[1])
+    .filter((date) => date !== expected);
+  if (staleMetaDates.length > 0) {
+    console.error(`${file} contains stale pick metadata dates: ${[...new Set(staleMetaDates)].join(', ')}`);
+    failed = true;
+  }
 }
 
 if (failed) process.exit(1);

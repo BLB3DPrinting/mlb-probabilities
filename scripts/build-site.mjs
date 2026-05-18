@@ -199,6 +199,10 @@ ${style}
     <span class="chip" data-filter="ks">K</span>
   </div>
   <div class="divider"></div>
+  <select id="teamFilter">
+    <option value="">All teams</option>
+    <option>ARI</option><option>ATH</option><option>ATL</option><option>BAL</option><option>BOS</option><option>CHC</option><option>CIN</option><option>CLE</option><option>COL</option><option>CWS</option><option>DET</option><option>HOU</option><option>KC</option><option>LAA</option><option>LAD</option><option>MIA</option><option>MIL</option><option>MIN</option><option>NYM</option><option>NYY</option><option>PHI</option><option>PIT</option><option>SD</option><option>SEA</option><option>SF</option><option>STL</option><option>TB</option><option>TEX</option><option>TOR</option><option>WSH</option>
+  </select>
   <input type="text" id="search" placeholder="Search player, team..." />
 </div>
 
@@ -233,14 +237,12 @@ function gameCard(game, scheduleByMatchup, index) {
   const ou = game.pick === 'OVER' ? 'over' : game.pick === 'UNDER' ? 'under' : 'neutral';
   const weather = hasWeatherAlert(game) ? 'alert' : 'calm';
   const pick = totalPill(game, index);
-  const awayPct = game.line ? clamp(Math.round((game.line / Math.max(game.combined || game.projected, game.line)) * 50), 35, 65) : 50;
-  const homePct = 100 - awayPct;
   const venue = meta.venue ? ` - ${escapeHtml(meta.venue)}` : '';
   const tag = weatherTag(game);
   const awayName = teamName(game.away);
   const homeName = teamName(game.home);
 
-  return `<article class="card" data-conf="${tier}" data-ou="${ou}" data-weather="${weather}" data-injury="none"><div class="head"><div><div class="matchup"><span class="matchup-logos">${teamLogo(game.away)}${awayName}<span class="vs">@</span>${teamLogo(game.home)}${homeName}</span></div><div class="time">${escapeHtml(meta.time || 'Time TBD')}${venue}</div></div>${tag}</div><div class="pitchers"><b>${escapeHtml(game.away)}:</b> ${escapeHtml(meta.awayPitcher || 'TBD')} - <b>${escapeHtml(game.home)}:</b> ${escapeHtml(meta.homePitcher || 'TBD')}</div><div class="probs"><span class="away">${escapeHtml(game.away)} ${awayPct}%</span><span class="home">${escapeHtml(game.home)} ${homePct}%</span></div><div class="bar"><span style="width:${homePct}%"></span></div><div class="pick-row"><div class="pill neutral"><div class="label">Winner</div><div class="value">No ML play <span class="conf-lo">PASS</span></div></div>${pick}</div><div class="factors"><div class="block" data-reason="${escapeAttr(weatherReason(game))}"><b>Weather:</b> ${escapeHtml(weatherSummary(game))}</div><div class="block" data-reason="${escapeAttr(modelReason(game))}"><b>Model:</b> ${escapeHtml(modelSummary(game))}</div></div></article>`;
+  return `<article class="card" data-conf="${tier}" data-ou="${ou}" data-weather="${weather}" data-injury="none"><div class="head"><div><div class="matchup"><span class="matchup-logos">${teamLogo(game.away)}${awayName}<span class="vs">@</span>${teamLogo(game.home)}${homeName}</span></div><div class="time">${escapeHtml(meta.time || 'Time TBD')}${venue}</div></div>${tag}</div><div class="pitchers"><b>${escapeHtml(game.away)}:</b> ${escapeHtml(meta.awayPitcher || 'TBD')} - <b>${escapeHtml(game.home)}:</b> ${escapeHtml(meta.homePitcher || 'TBD')}</div><div class="probs"><span class="away">Projected total</span><span class="home">${escapeHtml(String(round(game.combined || game.projected)))} runs${game.line ? ` vs ${escapeHtml(String(game.line))}` : ''}</span></div><div class="bar"><span style="width:${totalBarWidth(game)}%"></span></div><div class="pick-row"><div class="pill neutral"><div class="label">Winner</div><div class="value">No ML play <span class="conf-lo">PASS</span></div></div>${pick}</div><div class="factors"><div class="block" data-reason="${escapeAttr(weatherReason(game))}"><b>Weather:</b> ${escapeHtml(weatherSummary(game))}</div><div class="block" data-reason="${escapeAttr(modelReason(game))}"><b>Model:</b> ${escapeHtml(modelSummary(game))}</div></div></article>`;
 }
 
 function totalPill(game, index) {
@@ -272,7 +274,7 @@ function totalPill(game, index) {
     confidence: game.confidence,
     tactician_total: round(game.tactician?.total || 0),
   };
-  return `<div class="pill ${direction}" data-pick-id="${escapeAttr(pickId)}" data-conf-score="${score}" data-edge-pct="${Math.abs(edge / 10).toFixed(3)}" data-weather-cert="${hasWeatherData(game) ? '1.0' : '0.7'}" data-lineup-cert="0.7" data-factors="${escapeAttr(JSON.stringify(factors))}" ${index % 2 ? 'data-tip-side="left"' : ''} data-reason="${escapeAttr(totalReason(game))}"><div class="label">Total</div><div class="value">${label} ${escapeHtml(String(game.line))} <span class="conf-${conf}">${confLabel(conf)}</span></div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${escapeAttr(pickId)}" data-pick-meta="${escapeAttr(JSON.stringify(meta))}" title="Sign in to track picks">Track</button></div></div>`;
+  return `<div class="pill ${direction}" data-pick-id="${escapeAttr(pickId)}" data-conf-score="${score}" data-edge-pct="${Math.abs(edge / 10).toFixed(3)}" data-weather-cert="${hasWeatherData(game) ? '1.0' : '0.7'}" data-lineup-cert="1.0" data-factors="${escapeAttr(JSON.stringify(factors))}" ${index % 2 ? 'data-tip-side="left"' : ''} data-reason="${escapeAttr(totalReason(game))}"><div class="label">Total</div><div class="value">${label} ${escapeHtml(String(game.line))} <span class="conf-${conf}">${confLabel(conf)}</span></div><div class="pick-actions"><span class="stake-pill">${units}u</span><button class="btn-track" data-pick-id="${escapeAttr(pickId)}" data-pick-meta="${escapeAttr(JSON.stringify(meta))}" title="Sign in to track picks">Track</button></div></div>`;
 }
 
 async function fetchSchedule(isoDate) {
@@ -363,7 +365,7 @@ function formatBadge(isoDate) {
     long,
     short: `${shortDate} - ${time}`,
     time,
-    iso: `${isoDate}T${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:00Z`,
+    iso: now.toISOString(),
   };
 }
 
@@ -417,17 +419,21 @@ function unitsForEdge(edge) {
   return 0.5;
 }
 
+function weatherAdjustmentRuns(game) {
+  return Number(game.breakdown?.weatherAdj ?? game.breakdown?.weather ?? 0);
+}
+
 function hasWeatherData(game) {
-  return game.breakdown?.weather != null || game.tactician?.breakdown?.weather != null;
+  return game.breakdown?.weatherAdj != null || game.breakdown?.weather != null || game.tactician?.breakdown?.weather != null;
 }
 
 function hasWeatherAlert(game) {
-  return Math.abs(Number(game.breakdown?.weather || 0)) >= 0.5;
+  return Math.abs(weatherAdjustmentRuns(game)) >= 0.5;
 }
 
 function weatherTag(game) {
   if (!hasWeatherData(game)) return '<span class="tag dome" data-reason="No outdoor weather adjustment available.">Weather n/a</span>';
-  const adj = Number(game.breakdown?.weather || 0);
+  const adj = weatherAdjustmentRuns(game);
   if (adj >= 0.5) return `<span class="tag windout" data-reason="${escapeAttr(weatherReason(game))}">Run boost</span>`;
   if (adj <= -0.5) return `<span class="tag windin" data-reason="${escapeAttr(weatherReason(game))}">Run drag</span>`;
   return `<span class="tag" data-reason="${escapeAttr(weatherReason(game))}">Modest wx</span>`;
@@ -435,12 +441,12 @@ function weatherTag(game) {
 
 function weatherSummary(game) {
   if (!hasWeatherData(game)) return 'No live weather adjustment';
-  return `Weather adj ${signed(round(game.breakdown?.weather || 0))}r`;
+  return `Weather adj ${signed(round(weatherAdjustmentRuns(game)))}r`;
 }
 
 function weatherReason(game) {
   if (!hasWeatherData(game)) return 'No OpenWeather API data was available for this build, or the game is in a roofed venue.';
-  return `SportsBotv2 weather component adjusted the run environment by ${signed(round(game.breakdown?.weather || 0))} runs.`;
+  return `SportsBotv2 weather component adjusted the run environment by ${signed(round(weatherAdjustmentRuns(game)))} runs.`;
 }
 
 function modelSummary(game) {
@@ -463,6 +469,12 @@ function round(value) {
 
 function signed(value) {
   return `${value > 0 ? '+' : ''}${value}`;
+}
+
+function totalBarWidth(game) {
+  if (!game.line) return 50;
+  const edge = Number(game.edge || 0);
+  return clamp(Math.round(50 + edge * 10), 20, 80);
 }
 
 function clamp(value, min, max) {

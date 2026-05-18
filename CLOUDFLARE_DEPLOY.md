@@ -34,6 +34,7 @@ ALLOW_MISSING_MARKET_DATA=1 npm run build
 Required Worker variables remain in `wrangler.jsonc`:
 
 - `ADMIN_EMAIL`
+- `GH_DISPATCH_TOKEN` - required if the deployed Worker exposes admin GitHub-dispatch actions.
 - D1 binding `DB`
 - Assets binding `ASSETS`
 
