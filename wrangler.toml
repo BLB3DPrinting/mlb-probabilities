@@ -9,6 +9,9 @@ enabled = false
 directory = "./MLB_Probabilities"
 binding = "ASSETS"
 
+[vars]
+ADMIN_EMAIL = "bbaker@blb3dprinting.com"
+
 [[assets.run_worker_first]]
 prefix = "/api/*"
 
