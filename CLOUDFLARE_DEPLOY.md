@@ -21,6 +21,10 @@ Set these build environment variables in Cloudflare:
 - `OPENWEATHER_API_KEY` - optional but recommended; enables outdoor weather adjustments.
 - `SITE_DATE` - optional override for backfills, formatted `YYYY-MM-DD`.
 
+By default, the build uses today's Eastern date until 8:00 PM ET, then rolls
+forward to tomorrow's slate so evening/manual deploys do not try to match
+already-started games against tomorrow's pre-game odds.
+
 For local dry runs without market data:
 
 ```bash

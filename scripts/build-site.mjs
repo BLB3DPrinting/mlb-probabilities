@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const ROOT = process.cwd();
 const SITE_DIR = join(ROOT, 'MLB_Probabilities');
 const RESULTS_DIR = join(ROOT, 'sportsbotv2', 'data', 'results');
-const date = process.env.SITE_DATE || easternDate();
+const date = process.env.SITE_DATE || defaultBuildDate();
 const resultPath = join(RESULTS_DIR, `${date}.json`);
 
 const TEAM_IDS = {
@@ -311,6 +311,29 @@ function easternDate() {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date());
+}
+
+function defaultBuildDate() {
+  const now = new Date();
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      hour12: false,
+    })
+      .formatToParts(now)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value])
+  );
+  const etNoonUtc = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), 12);
+  const buildDate = new Date(etNoonUtc);
+  if (Number(parts.hour) >= 20) {
+    buildDate.setUTCDate(buildDate.getUTCDate() + 1);
+  }
+  return buildDate.toISOString().slice(0, 10);
 }
 
 function formatBadge(isoDate) {
