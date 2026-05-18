@@ -11,6 +11,9 @@
   "vars": {
     "ADMIN_EMAIL": "bbaker@blb3dprinting.com"
   },
+  "secrets": {
+    "required": ["GH_DISPATCH_TOKEN", "SETTLE_SECRET"]
+  },
   "d1_databases": [
     {
       "binding": "DB",

@@ -13,6 +13,9 @@ binding = "ASSETS"
 [vars]
 ADMIN_EMAIL = "bbaker@blb3dprinting.com"
 
+[secrets]
+required = [ "GH_DISPATCH_TOKEN", "SETTLE_SECRET" ]
+
 [[assets.run_worker_first]]
 prefix = "/api/*"
 
